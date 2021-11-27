@@ -35,13 +35,16 @@ public class SentimentAnalysis {
 		MongoClient mongoClient = MongoClients.create(settings);
 		MongoDatabase cleaned_database = mongoClient.getDatabase("ProcessedDb");
 
-		// All collections
+		// Get all collections
 		MongoIterable<String> collections = cleaned_database.listCollectionNames();
 
 		// Formatting the table
 		Formatter format = new Formatter();
-		format.format("%106s\n", "-".repeat(60));
-		format.format("|%15s|%15s|%50s|%10s|%10s|\n","News Article","News Content","Matched Words","Overall Score","Polarity");
+		format.format("%136s\n", "-".repeat(136));
+		format.format("|%-15s|%-50s|%-40s|%-15s|%-10s|\n", "News Article", "News Content", "Matched Words",
+				"Overall Score", "Polarity");
+		format.format("%136s\n", "-".repeat(136));
+		
 		// Collection wise operation
 		for (String collection : collections) {
 			// Temporary collection
@@ -49,17 +52,21 @@ public class SentimentAnalysis {
 			FindIterable<Document> documents = current_collection.find();
 			MongoCursor<Document> cursor = documents.iterator();
 
+			//Counter to main article number
 			int article_count = 1;
+			
 			// Iterating over all documents inside a single collection
 			while (cursor.hasNext()) {
 				Document document = cursor.next();
 				JSONObject object = new JSONObject(document);
-				// Get Tweet text from single document
-				String tweet = object.getString("full_text");
-//				System.out.println(tweet);
+				
+				// Get tweet text from single document
+				String tweet = object.getString("full_text").trim();
+				
 				// To count bag of words
 				Map<String, Integer> bag_of_words = new HashMap<String, Integer>();
 				String[] words = tweet.split(" ");
+				
 				// For each loop for all words in bag of words
 				for (String word : words) {
 					if (bag_of_words.containsKey(word)) {
@@ -71,20 +78,19 @@ public class SentimentAnalysis {
 
 				// Get all words from negative words file
 				URL negative_words_url = SentimentAnalysis.class.getClassLoader().getResource("negative-words.txt");
-//				BufferedReader br = new BufferedReader(new FileReader(new File(negative_words_url.toURI())));
-//				Path path = Paths.get(negative_words_url.toURI().getPath());
 				File negative_file = new File(negative_words_url.toURI());
 				Path negative_path = Paths.get(negative_file.getAbsolutePath());
 				List<String> negative_words = Files.readAllLines(negative_path);
 
 				// Get all words from positive words file
 				URL positive_words_url = SentimentAnalysis.class.getClassLoader().getResource("positive-words.txt");
-				File positive_file = new File(negative_words_url.toURI());
+				File positive_file = new File(positive_words_url.toURI());
 				Path positive_path = Paths.get(positive_file.getAbsolutePath());
 				List<String> positive_words = Files.readAllLines(positive_path);
 
 				// List for words that has been matched with either of words
 				ArrayList<String> matched_words = new ArrayList<String>();
+				
 				// To calculate polarity of tweet
 				int overall_score = 0;
 
@@ -92,29 +98,42 @@ public class SentimentAnalysis {
 				for (String word : words) {
 					if (negative_words.contains(word)) {
 						overall_score--;
-						matched_words.add(word);
+						if (!matched_words.contains(word)) {
+							matched_words.add(word);
+						}
 					} else if (positive_words.contains(word)) {
 						overall_score++;
-						matched_words.add(word);
+						if (!matched_words.contains(word)) {
+							matched_words.add(word);
+						}
 					}
 				}
-				
-				//Setting up polarity of news article
+
+				// Setting up polarity of news article
 				String polarity;
-				if(overall_score<0) {
-					polarity="Negative"; 
+				if (overall_score < 0) {
+					polarity = "Negative";
+				} else if (overall_score > 0) {
+					polarity = "Positive";
+				} else {
+					polarity = "Neutral";
 				}
-				else if(overall_score>0)
-				{
-					polarity="Positive";
-				}
-				else
-				{
-					polarity="Neutral";
-				}
+
+				tweet = tweet.replaceAll("[^a-zA-Z0-9 ]", " ");
+				tweet = tweet.replaceAll("[^\\p{L}\\p{N}\\p{P}\\p{Z}]", " ");
+				tweet = tweet.replaceAll("(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=_|!:,.;]*[-a-zA-Z0-9+&@#/%=_|]", " ");
 				
-				format.format("|%15s|%15s|%50s|%10s|%10s|\n",article_count,tweet,matched_words.toString(),overall_score,polarity);
+				//Restricting tweet to length 50 for proper tabular presentation
+				if (tweet.length() > 50) {
+					tweet = tweet.substring(0, 47) + "...";
+
+				}
+				format.format("|%-15d|%-50s|%-40s|%-15d|%-10s|\n", article_count, tweet, matched_words.toString(),
+						overall_score, polarity);
+				format.format("%136s\n", "-".repeat(136));
 				article_count++;
+				if (article_count == 50)
+					break;
 			}
 		}
 		System.out.println(format);
