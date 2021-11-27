@@ -10,6 +10,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 
@@ -27,11 +28,11 @@ public class SentimentAnalysis {
 		for (String collection : collections) {
 			MongoCollection current_collection = cleaned_database.getCollection(collection);
 			FindIterable<Document> documents = current_collection.find();
-			Iterator iterator = documents.iterator();
-			while(iterator.hasNext())
+			MongoCursor<Document> cursor = documents.iterator();
+			while(cursor.hasNext())
 			{
-				Document document = iterator.next();
-				
+				Document document = cursor.next();
+				System.out.println(document);
 			}
 		}
 
