@@ -75,11 +75,11 @@ public class SemanticAnalysis {
 
 		// Count highest frequency of canada in all documents
 		Formatter format2 = new Formatter();
-		format2.format("%153s\n", "-".repeat(153));
-		format2.format("|%-75s|%-75s|\n", "Term", "Canada");
-		format2.format("%153s\n", "-".repeat(153));
-		format2.format("|%-75s|%-37s|%-37s|\n", "Canada Appeared in documents", "Total Words(m)", "Frequencey(f)");
-		format2.format("%153s\n", "-".repeat(153));
+		format2.format("%73s\n", "-".repeat(73));
+		format2.format("|%-35s|%-35s|\n", "Term", "Canada");
+		format2.format("%73s\n", "-".repeat(73));
+		format2.format("|%-35s|%-17s|%-17s|\n", "Canada Appeared in documents", "Total Words(m)", "Frequencey(f)");
+		format2.format("%73s\n", "-".repeat(73));
 
 		// Counting canada frequency in each docuemnt
 		documents = news_collection.find();
@@ -111,14 +111,15 @@ public class SemanticAnalysis {
 			}
 
 			if (frequency > 0)
-				format2.format("|%-75s|%-37s|%-37s|\n", "Article #" + article_count, total_words, frequency);
+				format2.format("|%-35s|%-17s|%-17s|\n", "Article #" + article_count, total_words, frequency);
 			article_count++;
 		}
-
+		
+		format2.format("%73s\n", "-".repeat(73));
 		System.out.println(format2);
 		System.out.println("Document with highest frequency of Canada term");
-		System.out.println("Frequency/Total words = "+highest_ratio);
-		System.out.println("Title : "+highest_words_document.getString("title"));
-		System.out.println("Body : "+highest_words_document.getString("body"));
+		System.out.println("Frequency/Total words = " + highest_ratio);
+		System.out.println("Title : " + highest_words_document.getString("title"));
+		System.out.println("Body : " + highest_words_document.getString("body"));
 	}
 }
