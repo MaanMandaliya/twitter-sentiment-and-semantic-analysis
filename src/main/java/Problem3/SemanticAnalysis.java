@@ -1,11 +1,9 @@
 package Problem3;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.Formatter;
-import java.util.Iterator;
 import java.text.DecimalFormat;
 
 import com.mongodb.ConnectionString;
